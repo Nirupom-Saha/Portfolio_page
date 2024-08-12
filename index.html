@@ -183,6 +183,7 @@
       <h3>Thanks for leaving a recommendation!</h3>
       <button onclick="showPopup(false)">Ok</button>
     </div>
+    
   <script>function addRecommendation() {
     // Get the recommendation text from the textarea
     var recommendationText = document.getElementById("new_recommendation").value;
@@ -228,96 +229,7 @@ function showPopup(show) {
     }
 }
 </script>
-<script>async function saveRecommendation(recommendationText) {
-  const repoOwner = 'your-username'; // Replace with your GitHub username
-  const repoName = 'your-repo'; // Replace with your GitHub repository name
-  const fileName = `recommendations/${Date.now()}.txt`; // Unique filename based on timestamp
-  const fileContent = btoa(recommendationText); // Base64 encode the recommendation text
-  const branch = 'main'; // Replace with your branch name if different
 
-  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${fileName}`;
-  const token = 'your-personal-access-token'; // Replace with your GitHub Personal Access Token
 
-  const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-          'Authorization': `token ${token}`,
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-          message: `Added recommendation at ${new Date().toISOString()}`,
-          content: fileContent,
-          branch: branch,
-      }),
-  });
-
-  if (response.ok) {
-      console.log('Recommendation saved successfully.');
-  } else {
-      console.error('Failed to save recommendation:', response.statusText);
-  }
-}
-
-// Call this function in addRecommendation
-async function addRecommendation() {
-  var recommendationText = document.getElementById("new_recommendation").value;
-
-  if (recommendationText.trim() === "") {
-      return;
-  }
-
-  await saveRecommendation(recommendationText);
-  document.getElementById("new_recommendation").value = "";
-  showPopup(true);
-}
-</script>
-<script>async function deleteRecommendation(fileName) {
-  const repoOwner = 'your-username'; // Replace with your GitHub username
-  const repoName = 'your-repo'; // Replace with your GitHub repository name
-  const branch = 'main'; // Replace with your branch name if different
-
-  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${fileName}`;
-  const token = 'your-personal-access-token'; // Replace with your GitHub Personal Access Token
-
-  // Get the file's SHA to delete it
-  const getFileResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-          'Authorization': `token ${token}`,
-          'Content-Type': 'application/json',
-      },
-  });
-
-  if (getFileResponse.ok) {
-      const fileData = await getFileResponse.json();
-      const sha = fileData.sha;
-
-      // Now delete the file
-      const deleteResponse = await fetch(url, {
-          method: 'DELETE',
-          headers: {
-              'Authorization': `token ${token}`,
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              message: `Deleted recommendation ${fileName}`,
-              sha: sha,
-              branch: branch,
-          }),
-      });
-
-      if (deleteResponse.ok) {
-          console.log('Recommendation deleted successfully.');
-      } else {
-          console.error('Failed to delete recommendation:', deleteResponse.statusText);
-      }
-  } else {
-      console.error('Failed to get file info:', getFileResponse.statusText);
-  }
-}
-
-// Example usage
-deleteRecommendation('recommendations/1684959483941.txt');
-</script>
 
 </body></html>
