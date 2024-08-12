@@ -23,11 +23,11 @@
         </div>
         </div>
         <div class="topdiv">
-          <a class="topmenu" href="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/index.html#about-me">About Me</a>
+          <a class="topmenu" href="index.html#about-me">About Me</a>
           <!-- Add the links for Skills, Projects and Recommendation here -->
-          <a class="topmenu" href="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/index.html#skills">Skills</a>
-          <a class="topmenu" href="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/index.html#projects">Projects</a>
-          <a class="topmenu" href="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/index.html#recommendations">Recommendations</a>
+          <a class="topmenu" href="index.html#skills">Skills</a>
+          <a class="topmenu" href="index.html#projects">Projects</a>
+          <a class="topmenu" href="index.html#recommendations">Recommendations</a>
 
         </div>
       </div>    
@@ -170,7 +170,7 @@
     </section>
 
     <div class="iconbutton">
-      <a href="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/index.html#home">
+      <a href="index.html#home">
         <!--Add the code here for the logo to appear and the icon to be actionable-->
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" width="63px">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11.25l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -179,10 +179,145 @@
     </div>
 
     <div class="popup" id="popup">
-      <img src="file:///C:/Users/nirup/Desktop/Final%20Project/New%20folder%20(2)/html_finalprojimages/checkmark--outline.svg">
+      <img src="checkmark--outline.svg">
       <h3>Thanks for leaving a recommendation!</h3>
       <button onclick="showPopup(false)">Ok</button>
     </div>
-  
+  <script>function addRecommendation() {
+    // Get the recommendation text from the textarea
+    var recommendationText = document.getElementById("new_recommendation").value;
+
+    // If the recommendation text is empty, do nothing
+    if (recommendationText.trim() === "") {
+        return;
+    }
+
+    // Create a new div element for the recommendation
+    var newRecommendation = document.createElement("div");
+    newRecommendation.classList.add("recommendation");
+
+    // Add the text to the new recommendation div
+    var spanStart = document.createElement("span");
+    spanStart.textContent = "“";
+    newRecommendation.appendChild(spanStart);
+
+    var textNode = document.createTextNode(recommendationText);
+    newRecommendation.appendChild(textNode);
+
+    var spanEnd = document.createElement("span");
+    spanEnd.textContent = "”";
+    newRecommendation.appendChild(spanEnd);
+
+    // Append the new recommendation to the recommendations section
+    var recommendationsContainer = document.getElementById("all_recommendations");
+    recommendationsContainer.appendChild(newRecommendation);
+
+    // Clear the textarea
+    document.getElementById("new_recommendation").value = "";
+
+    // Show the popup message
+    showPopup(true);
+}
+
+function showPopup(show) {
+    var popup = document.getElementById("popup");
+    if (show) {
+        popup.style.display = "block";
+    } else {
+        popup.style.display = "none";
+    }
+}
+</script>
+<script>async function saveRecommendation(recommendationText) {
+  const repoOwner = 'your-username'; // Replace with your GitHub username
+  const repoName = 'your-repo'; // Replace with your GitHub repository name
+  const fileName = `recommendations/${Date.now()}.txt`; // Unique filename based on timestamp
+  const fileContent = btoa(recommendationText); // Base64 encode the recommendation text
+  const branch = 'main'; // Replace with your branch name if different
+
+  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${fileName}`;
+  const token = 'your-personal-access-token'; // Replace with your GitHub Personal Access Token
+
+  const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          message: `Added recommendation at ${new Date().toISOString()}`,
+          content: fileContent,
+          branch: branch,
+      }),
+  });
+
+  if (response.ok) {
+      console.log('Recommendation saved successfully.');
+  } else {
+      console.error('Failed to save recommendation:', response.statusText);
+  }
+}
+
+// Call this function in addRecommendation
+async function addRecommendation() {
+  var recommendationText = document.getElementById("new_recommendation").value;
+
+  if (recommendationText.trim() === "") {
+      return;
+  }
+
+  await saveRecommendation(recommendationText);
+  document.getElementById("new_recommendation").value = "";
+  showPopup(true);
+}
+</script>
+<script>async function deleteRecommendation(fileName) {
+  const repoOwner = 'your-username'; // Replace with your GitHub username
+  const repoName = 'your-repo'; // Replace with your GitHub repository name
+  const branch = 'main'; // Replace with your branch name if different
+
+  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${fileName}`;
+  const token = 'your-personal-access-token'; // Replace with your GitHub Personal Access Token
+
+  // Get the file's SHA to delete it
+  const getFileResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json',
+      },
+  });
+
+  if (getFileResponse.ok) {
+      const fileData = await getFileResponse.json();
+      const sha = fileData.sha;
+
+      // Now delete the file
+      const deleteResponse = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+              'Authorization': `token ${token}`,
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              message: `Deleted recommendation ${fileName}`,
+              sha: sha,
+              branch: branch,
+          }),
+      });
+
+      if (deleteResponse.ok) {
+          console.log('Recommendation deleted successfully.');
+      } else {
+          console.error('Failed to delete recommendation:', deleteResponse.statusText);
+      }
+  } else {
+      console.error('Failed to get file info:', getFileResponse.statusText);
+  }
+}
+
+// Example usage
+deleteRecommendation('recommendations/1684959483941.txt');
+</script>
 
 </body></html>
